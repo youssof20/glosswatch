@@ -481,4 +481,35 @@ not just code that compiles. **Update §11 (Current Status) after each phase.**
 > new edge cases or decisions discovered along the way. Keep old entries below new
 > ones so this reads as a running log.
 
-- **Phase 0:** Not started.
+- **Phase 0:** Done (2026-09-08).
+  - **Built:** WXT 0.21 + TypeScript + Manifest V3 scaffold; MIT license; README;
+    hello-world content script (`<all_urls>`) that logs `[Glosswatch] content script loaded`
+    and sets `document.documentElement.dataset.glosswatch = "loaded"`; background
+    service worker that logs on startup and on toolbar-icon click. `npm run build`
+    emits `.output/chrome-mv3`; `npm run build:firefox` emits `.output/firefox-mv3`.
+    `npm run smoke` installs the Firefox build as a temporary add-on and confirms
+    injection on `https://example.com`.
+  - **Vs. planned:** Matches Phase 0. Chose **WXT** (not CRXJS). Vanilla TS, not
+    Preact yet — overlay UI starts in Phase 1. No toolbar popup (CONTEXT wants an
+    in-page panel later, so `action` is icon-only).
+  - **Decisions / discoveries:**
+    - WXT no longer uses `webextension-polyfill` by default. We opted in via
+      `@wxt-dev/webextension-polyfill` so all `browser.*` calls stay polyfilled
+      from day one, as this doc requires.
+    - WXT defaults Firefox to MV2. `manifestVersion: 3` is set in `wxt.config.ts`
+      so both browsers ship MV3. Firefox's generated background entry is
+      `background.scripts` (not a service worker) — that is WXT's correct MV3
+      mapping for Gecko.
+    - AMO now wants `browser_specific_settings.gecko.data_collection_permissions`.
+      We declare `{ required: ["none"] }` and set `strict_min_version` to Firefox
+      140 (142 on Android) so `web-ext lint` is clean.
+    - Stable Firefox id: `glosswatch@youssof20.github.io`.
+    - Source lives under `src/` (`srcDir: 'src'`). Shared core engine will go
+      there in later phases.
+    - Chrome was not installed on the Phase 0 machine; live injection was
+      confirmed in Firefox. The Chromium package is the same content script and
+      loads unpacked in Chrome/Edge via `chrome://extensions`. Branded Edge/Chrome
+      have removed `--load-extension`, so CLI sideload is no longer a viable
+      automated check on those browsers.
+  - **New edge cases:** none for the product yet. Environment note: Node.js was
+    not on PATH and was installed (Node 24 LTS) to run the toolchain.
