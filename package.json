@@ -30,6 +30,7 @@
     "test:fixtures": "node scripts/make-fixtures.mjs",
     "test:browsers": "node scripts/install-browsers.mjs",
     "test:sites": "node scripts/test-sites.mjs",
+    "store:assets": "npm run build && node scripts/prepare-store.mjs",
     "licenses": "node scripts/build-notices.mjs",
     "smoke": "node scripts/test-firefox.mjs",
     "test:firefox": "node scripts/test-firefox.mjs",

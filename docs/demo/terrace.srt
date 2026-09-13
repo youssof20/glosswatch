@@ -1,0 +1,11 @@
+1
+00:00:00,000 --> 00:00:05,000
+Abre la ventana. Hace una tarde preciosa.
+
+2
+00:00:05,000 --> 00:00:10,000
+Vamos a tomar un café junto al mar.
+
+3
+00:00:10,000 --> 00:00:15,000
+Mañana volveremos a este lugar.

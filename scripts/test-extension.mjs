@@ -55,6 +55,16 @@ try {
   await expect(page.locator('.subtitle')).toBeHidden();
   await page.getByRole('button', { name: 'Reset timing' }).click();
   await expect(page.locator('.main-line')).toHaveText('Hola, mundo.');
+  await page.getByRole('button', { name: 'Subtitles later by half a second' }).click();
+  await expect(page.getByLabel('Timing offset in seconds')).toHaveValue('0.5');
+  await page.getByRole('button', { name: 'Subtitles earlier by half a second' }).click();
+  await expect(page.getByLabel('Timing offset in seconds')).toHaveValue('0');
+  await seek(page, 4.5);
+  await page.getByRole('button', { name: 'Replay line', exact: true }).click();
+  assert.ok(await page.locator('video').evaluate(video => video.currentTime >= 3 && video.currentTime < 4));
+  await page.getByRole('button', { name: 'Next line', exact: true }).click();
+  assert.ok(await page.locator('video').evaluate(video => video.currentTime >= 6 && video.currentTime < 7));
+  await seek(page, 1);
   step('subtitle loading, translation, and live offsets');
 
   await page.getByLabel('Subtitle file', { exact: true }).setInputFiles({ name: 'broken.srt', mimeType: 'text/plain', buffer: Buffer.from('This is broken') });
@@ -97,6 +107,14 @@ try {
 
   const review = await context.newPage(); await review.goto(`${extension}/review.html`);
   await expect(review.locator('.word-row')).toHaveCount(1);
+  await review.getByLabel('Search saved words').fill('missingword');
+  await expect(review.locator('#no-results')).toBeVisible();
+  await review.getByRole('button', { name: 'Clear filters' }).click();
+  await expect(review.locator('.word-row')).toHaveCount(1);
+  await expect(review.getByLabel('Search saved words')).toHaveValue('');
+  await review.getByLabel('Search saved words').fill(' HÓLA ');
+  await expect(review.locator('.word-row')).toHaveCount(1);
+  await review.getByLabel('Search saved words').fill('');
   await review.getByRole('button', { name: 'Start review' }).click();
   await review.getByRole('button', { name: 'Show meaning' }).click();
   await expect(review.locator('#answer')).toContainText(/hello/i);
@@ -135,6 +153,23 @@ try {
   await player.getByLabel('Subtitle file', { exact: true }).setInputFiles(srt); await seek(player, 1);
   await expect(player.locator('.main-line')).toHaveText('Hola, mundo.');
   await player.getByRole('button', { name: 'Close subtitles panel' }).click();
+  await seek(player, 4.5);
+  await player.locator('#replay-line').click();
+  assert.ok(await player.locator('video').evaluate(video => video.currentTime >= 3 && video.currentTime < 4));
+  await player.locator('h1').click();
+  await seek(player, 7.5); await player.keyboard.press('r');
+  assert.ok(await player.locator('video').evaluate(video => video.currentTime >= 6 && video.currentTime < 7));
+  await player.locator('#subtitle-controls').click();
+  await expect(player.locator('.panel')).toBeVisible();
+  await player.getByRole('button', { name: 'Close subtitles panel' }).click();
+  await seek(player, 1);
+  await player.evaluate(() => window.scrollTo(0, 260));
+  await expect.poll(() => player.evaluate(() => {
+    const video = document.querySelector('video').getBoundingClientRect();
+    const anchor = document.querySelector('glosswatch-ui').shadowRoot.querySelector('.anchor').getBoundingClientRect();
+    return Math.abs(video.bottom - anchor.bottom);
+  })).toBeLessThan(2);
+  await player.evaluate(() => window.scrollTo(0, 0));
   await player.getByLabel('Video file', { exact: true }).setInputFiles(path.join(root, '.cache', 'fixtures', 'sample.mkv'));
   await expect(player.locator('#progress')).toBeHidden({ timeout: 60000 });
   await expect(player.locator('#notice.error')).toHaveCount(0);
@@ -167,6 +202,15 @@ try {
   await expect(player.locator('#notice')).toContainText('Allow access to file URLs');
   await player.setViewportSize({ width: 390, height: 844 }); await screenshot(player, 'player-mobile');
   assert.equal(await player.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
+  for (const width of [390, 320]) {
+    await player.setViewportSize({ width, height: 844 });
+    assert.equal(await player.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
+    assert.ok(await player.evaluate(() => {
+      const stage = document.querySelector('#stage').getBoundingClientRect();
+      const button = document.querySelector('#choose-video').getBoundingClientRect();
+      return button.bottom <= stage.bottom && button.top >= stage.top;
+    }), 'the choose-video action must fit inside the empty player');
+  }
   assert.deepEqual(external, [], 'The tested flows must not make external network requests');
   assert.deepEqual(errors, [], 'No uncaught browser errors');
   step('no-video and file-access guidance, narrow layout, and zero external requests');

@@ -3,16 +3,16 @@
 <body>
   <header class="site-header"><a class="brand" href="player.html"><img src="/icon/48.png" alt="">Glosswatch</a><nav aria-label="Main"><a href="player.html" aria-current="page">Local player</a><a href="review.html">Saved words</a></nav></header>
   <main>
-    <div class="intro"><div><p class="eyebrow">Local player</p><h1>Watch with your own subtitles.</h1><p class="muted">Open a video, add your subtitles, and keep the words worth remembering.</p></div><button id="change-video" hidden>Change video</button></div>
+    <div class="intro"><div><h1>Local player</h1><p class="muted">Your video, your subtitles. Learn a few words as you watch.</p></div><button id="change-video" hidden>Change video</button></div>
     <div id="notice" class="banner" role="status" hidden><p></p><button id="notice-action" hidden>Extension settings</button><button id="dismiss-notice" class="quiet" aria-label="Dismiss message">×</button></div>
     <div class="stage" id="stage">
-      <div class="empty-player" id="empty-player"><div class="symbol" aria-hidden="true"><svg viewBox="0 0 24 28"><path d="M2 1 24 14 2 27Z"/></svg></div><h2>Bring something to watch.</h2><p>Drop a video here, or choose a file.<br>It stays on this device.</p><button id="choose-video">Choose video</button></div>
+      <div class="empty-player" id="empty-player"><div class="symbol" aria-hidden="true"><img src="/icon/128.png" alt=""></div><h2>Open a video</h2><p>Drop a file here, or choose one from your device.<br>Your video stays on this device.</p><button id="choose-video">Choose video</button></div>
       <video id="video" controls playsinline hidden></video>
       <div class="progress" id="progress" hidden><h2>Preparing your video</h2><p id="progress-label">Reading the file…</p><progress max="1" value="0"></progress><button id="cancel">Cancel</button></div>
     </div>
     <input type="file" id="video-file" accept="video/*,.mkv,.mp4,.webm,.mov,.m4v,.avi" hidden aria-label="Video file">
-    <div class="player-meta row spread"><span class="file-label" id="file-label">MP4, WebM, MOV & MKV</span><span class="small muted" id="file-status">No upload. No account.</span></div>
-    <div class="notes"><div><h3>01 / Start with a video</h3><p>Open a file from your computer. MKV files are prepared locally when their codecs are supported.</p></div><div><h3>02 / Add your subtitles</h3><p>Drop an SRT, VTT, ASS or SSA file onto the video. Adjust timing in the Glosswatch panel.</p></div><div><h3>03 / Keep a new word</h3><p>Hover over a word for its meaning. Save it with the line you heard, then review it later.</p></div></div>
+    <div class="player-meta row spread"><div class="file-details"><p class="file-label" id="file-label">MP4, WebM, MOV &amp; MKV</p><p class="small muted" id="file-status">No upload. No account.</p></div><div class="player-actions" id="player-actions" hidden><button id="replay-line" title="Replay the current subtitle line (R)">Replay line <kbd>R</kbd></button><button id="subtitle-controls" class="primary">Subtitles</button></div></div>
+    <div class="notes"><div><h3><span class="step-number">01</span>Open your video</h3><p>Open a file from your computer. MKV files are prepared locally when their codecs are supported.</p></div><div><h3><span class="step-number">02</span>Add subtitles</h3><p>Drop an SRT, VTT, ASS or SSA file onto the video. Adjust timing in the Glosswatch panel.</p></div><div><h3><span class="step-number">03</span>Save a word</h3><p>Hover over a word for its meaning. Save it with the line you heard, then review it later.</p></div></div>
   </main>
   <footer><span>Glosswatch · Everything stays on your device.</span><a href="about.html">Help, privacy & licenses</a></footer>
   <script type="module" src="./main.ts"></script>

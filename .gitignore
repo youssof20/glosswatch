@@ -19,6 +19,18 @@ stats-*.json
 test-results/
 playwright-report/
 
+# Local planning notes and submission drafts
+.local/
+CONTEXT.md
+context.md
+RELEASE.md
+release.md
+docs/DESIGN.md
+docs/demo/README.md
+docs/store/capture.json
+docs/store/listing.txt
+docs/store/reviewer-instructions.txt
+
 # web-ext
 web-ext.config.ts
 web-ext-artifacts

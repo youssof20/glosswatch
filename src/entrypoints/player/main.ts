@@ -9,6 +9,14 @@ const stage = select<HTMLElement>(document, '#stage');
 const fileInput = select<HTMLInputElement>(document, '#video-file');
 const progress = select<HTMLElement>(document, '#progress');
 const watch = new Watch();
+select(document, '#subtitle-controls').addEventListener('click', () => watch.open());
+select(document, '#replay-line').addEventListener('click', () => watch.replay());
+document.addEventListener('keydown', event => {
+  const editing = event.composedPath().some(node => node instanceof HTMLElement && (node.matches('input, textarea, select, button') || node.isContentEditable));
+  if (event.key.toLowerCase() === 'r' && !event.ctrlKey && !event.metaKey && !event.altKey && !editing && !video.hidden) {
+    event.preventDefault(); watch.replay();
+  }
+});
 void cleanTemporaryVideos().catch(() => {});
 let activeUrl = '', generation = 0, controller: AbortController | undefined;
 let cleanFile: (() => Promise<void>) | undefined;
@@ -28,6 +36,7 @@ for (const id of ['#choose-video', '#change-video']) select(document, id).addEve
 fileInput.addEventListener('change', () => { if (fileInput.files?.[0]) void openVideo(fileInput.files[0]); fileInput.value = ''; });
 
 async function release() {
+  select<HTMLElement>(document, '#player-actions').hidden = true;
   video.pause(); video.removeAttribute('src'); video.load();
   if (activeUrl) { URL.revokeObjectURL(activeUrl); activeUrl = ''; }
   const cleanup = cleanFile; cleanFile = undefined; await cleanup?.();
@@ -61,6 +70,7 @@ async function openVideo(file: File) {
     activeUrl = URL.createObjectURL(playable); video.src = activeUrl;
     video.dataset.glosswatchFile = `${file.name}|${file.size}|${file.lastModified}`;
     video.hidden = false; progress.hidden = true; video.load();
+    select<HTMLElement>(document, '#player-actions').hidden = false;
   } catch (error) {
     if (generation !== id) return;
     progress.hidden = true; select<HTMLElement>(document, '#empty-player').hidden = false;

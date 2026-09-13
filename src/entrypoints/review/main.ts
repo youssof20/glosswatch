@@ -19,10 +19,11 @@ function toast(text: string, undo?: () => Promise<unknown>) {
 }
 async function refresh() { collection = await request<Card[]>('cards.list'); render(); }
 function filtered() {
-  const query = get<HTMLInputElement>('#search').value.toLocaleLowerCase();
+  const normalize = (text: string) => text.toLocaleLowerCase().normalize('NFD').replace(/\p{M}/gu, '');
+  const query = normalize(get<HTMLInputElement>('#search').value.trim());
   const language = get<HTMLSelectElement>('#language').value;
   const sort = get<HTMLSelectElement>('#sort').value;
-  return collection.filter(card => (language === 'all' || card.language === language) && `${card.word} ${card.lemma} ${card.meaning} ${card.sentence}`.toLocaleLowerCase().includes(query))
+  return collection.filter(card => (language === 'all' || card.language === language) && normalize(`${card.word} ${card.lemma} ${card.meaning} ${card.sentence}`).includes(query))
     .sort((a, b) => sort === 'word' ? a.lemma.localeCompare(b.lemma) : sort === 'due' ? a.due - b.due : b.created - a.created);
 }
 function render() {
@@ -32,7 +33,9 @@ function render() {
   const filteredCards = filtered(); const list = get('#words'); list.replaceChildren();
   get('#empty').hidden = !!collection.length;
   get('#more').hidden = filteredCards.length <= limit;
-  if (collection.length && !filteredCards.length) list.append(element('p', 'No words match these filters.', 'empty muted'));
+  get('#no-results').hidden = !collection.length || !!filteredCards.length;
+  get('#result-count').hidden = !collection.length;
+  get('#result-count').textContent = `${filteredCards.length.toLocaleString()} ${filteredCards.length === 1 ? 'word' : 'words'}${filteredCards.length > limit ? ` · showing ${limit}` : ''}`;
   for (const card of filteredCards.slice(0, limit)) {
     const row = element('article', '', 'word-row');
     const word = element('div'); word.append(element('h3', card.word), element('p', languages[card.language] ?? card.language, 'small muted'));
@@ -52,6 +55,9 @@ function render() {
   }
 }
 for (const query of ['#search','#language','#sort']) get(query).addEventListener('input', () => { limit = 50; render(); });
+get('#clear-filters').addEventListener('click', () => {
+  get<HTMLInputElement>('#search').value = ''; get<HTMLSelectElement>('#language').value = 'all'; limit = 50; render(); get('#search').focus();
+});
 get('#more').addEventListener('click', () => { limit += 50; render(); });
 get('#start-review').addEventListener('click', () => {
   deck = collection.filter(card => card.due <= Date.now()).sort((a,b) => a.due - b.due); index = 0;

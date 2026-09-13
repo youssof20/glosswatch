@@ -31,7 +31,9 @@ export default defineConfig({
     dotSources: true,
     includeSources: [
       'src/**', 'public/**', 'assets/**', 'scripts/**', 'tests/**',
-      '.github/workflows/**', '.gitignore', '*.md', 'LICENSE',
+      'docs/.nojekyll', 'docs/*.html', 'docs/store/*.jpg', 'docs/store/*.png',
+      'docs/demo/*.mp4', 'docs/demo/*.srt', 'docs/demo/*.vtt',
+      '.github/workflows/**', '.gitignore', 'README.md', 'LICENSE',
       'package.json', 'package-lock.json', 'tsconfig.json', 'wxt.config.ts',
     ],
   },

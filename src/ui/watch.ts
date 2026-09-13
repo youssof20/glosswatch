@@ -50,7 +50,7 @@ export class Watch {
     const body = element('div');
     body.innerHTML = `
       <div class="anchor">
-        <button class="toggle" aria-label="Open Glosswatch" aria-expanded="false">Glosswatch</button>
+        <button class="toggle" aria-label="Open Glosswatch" aria-expanded="false"><svg viewBox="0 0 128 128" aria-hidden="true"><rect width="128" height="128" rx="24" fill="#172b3a"/><path d="M52 26 80 42 52 58Z" fill="#71dfb8"/><path d="M24 79h48m-36 20h56" stroke="#f2f6f8" stroke-width="10" stroke-linecap="round"/><path d="M78 79h26" stroke="#71dfb8" stroke-width="10" stroke-linecap="round"/></svg>Glosswatch</button>
         <section class="panel" aria-label="Glosswatch controls" hidden>
           <header><h2>Subtitles</h2><button class="quiet close" aria-label="Close subtitles panel">×</button></header>
           <p class="message" role="status" aria-live="polite" hidden></p>
@@ -65,7 +65,9 @@ export class Watch {
           <div class="section main-settings stack" hidden>
             <div class="row"><label for="gw-offset">Timing offset</label><div><input id="gw-offset" type="number" step="0.05" min="-3600" max="3600" value="0" aria-label="Timing offset in seconds"> s</div></div>
             <input class="offset-slider" type="range" min="-10" max="10" step="0.05" value="0" aria-label="Timing offset slider">
-            <div class="row muted"><span>Earlier</span><button class="quiet reset-offset">Reset timing</button><span>Later</span></div>
+            <div class="row timing-actions"><button class="earlier" aria-label="Subtitles earlier by half a second">−0.5 s</button><button class="quiet reset-offset">Reset timing</button><button class="later" aria-label="Subtitles later by half a second">+0.5 s</button></div>
+            <p class="hint">Words appearing too soon? Use +0.5 s.</p>
+            <div class="line-actions"><button class="replay">Replay line</button><button class="next-line">Next line</button></div>
             <label><input class="visible" type="checkbox" checked> Show subtitles</label>
             <label>Word meanings<select class="language" aria-label="Word meanings"><option value="es">Spanish → English</option><option value="fr">French → English</option><option value="de">German → English</option><option value="it">Italian → English</option><option value="pt">Portuguese → English</option><option value="off">Off — subtitles only</option></select></label>
             <div class="row"><button class="add-translation quiet">Add translation subtitle</button><button class="remove-translation quiet" hidden>Remove</button></div>
@@ -104,6 +106,10 @@ export class Watch {
     this.click('.add-translation', () => this.get<HTMLInputElement>('.second-file').click());
     this.click('.remove', () => this.remove(false)); this.click('.remove-translation', () => this.remove(true));
     this.click('.reset-offset', () => this.setOffset(0));
+    this.click('.earlier', () => this.setOffset(this.offset - .5));
+    this.click('.later', () => this.setOffset(this.offset + .5));
+    this.click('.replay', () => this.replay());
+    this.click('.next-line', () => this.replay(true));
     this.click('.reset-style', () => { this.prefs = { ...this.prefs, fontSize: 28, color: '#ffffff', opacity: .78, bottom: 12 }; this.applyPreferences(); this.savePreferences(); });
     this.click('.player', () => this.run(() => request('page.open', { page: 'player' })));
     this.click('.review', () => this.run(() => request('page.open', { page: 'review' })));
@@ -215,6 +221,19 @@ export class Watch {
     else this.toggleButton.focus();
   }
   toggle() { this.open(this.panel.hidden); }
+  replay(next = false) {
+    if (!this.video || !this.primary) { this.notice('Add subtitles to replay a line.'); this.open(true); return; }
+    const time = this.video.currentTime - this.offset;
+    const cues = this.primary.cues;
+    const cue = next ? cues.find(c => c.start > time + .1) : cues.findLast(c => c.start <= time + .1) ?? cues[0];
+    if (!cue) { this.notice('You’re at the last subtitle line.'); return; }
+    this.closeCard();
+    this.video.currentTime = Math.max(0, cue.start + this.offset + .01);
+    void this.video.play().catch(error => {
+      // A quick pause, seek or file change can cancel an in-flight play request.
+      if (error?.name !== 'AbortError') this.notice('Playback could not start. Press play on the video to continue.', true);
+    });
+  }
   private attach(video?: HTMLVideoElement) {
     if (video === this.video) return;
     this.resize.disconnect(); this.video = video; this.sourceIdentity = ''; this.lastText = ''; this.settingsKey = ''; this.closeCard();
@@ -239,14 +258,18 @@ export class Watch {
       if (this.primary) this.run(() => this.restoreOffsets());
     }
     const r = this.video?.getBoundingClientRect();
-    const visible = !!r && r.width > 0 && r.bottom > 0 && r.top < innerHeight;
+    const visible = !!r && r.width > 0 && r.height > 0 && r.bottom > 0 && r.top < innerHeight && r.right > 0 && r.left < innerWidth;
     this.toggleButton.hidden = !visible && this.panel.hidden;
-    const left = visible ? Math.max(0, r!.left) : Math.max(0, innerWidth - 380);
-    const top = visible ? Math.max(0, r!.top) : 0;
-    const width = visible ? Math.min(innerWidth - left, r!.width) : 380;
-    const height = visible ? Math.min(innerHeight - top, r!.height) : innerHeight;
+    const left = visible ? r!.left : Math.max(0, innerWidth - 380);
+    const top = visible ? r!.top : 0;
+    const width = visible ? r!.width : 380;
+    const height = visible ? r!.height : innerHeight;
     Object.assign(this.anchor.style, { left: `${left}px`, top: `${top}px`, width: `${width}px`, height: `${height}px`, right: 'auto', bottom: 'auto' });
-    this.panel.style.maxHeight = `${Math.max(160, Math.min(640, innerHeight - top - 78))}px`;
+    const panelTop = Math.max(64, 16 - top);
+    this.panel.style.top = `${panelTop}px`;
+    this.panel.style.right = `${Math.max(16, left + width - innerWidth + 16)}px`;
+    this.toggleButton.style.top = `${Math.max(16, 16 - top)}px`;
+    this.panel.style.maxHeight = `${Math.max(160, Math.min(640, innerHeight - top - panelTop - 16))}px`;
     this.subtitle.style.setProperty('--font-size', `${Math.min(this.prefs.fontSize, Math.max(16, width / 20))}px`);
     this.get('.video-status').textContent = this.video ? (this.video.mediaKeys ? 'Protected video. Subtitles work when the player exposes its video element.' : this.primary ? 'Attached to this video.' : 'Drop a subtitle file to begin.') : "Couldn’t find a video on this page. Start the video, or open a file in the local player.";
     this.get<HTMLButtonElement>('.fullscreen').disabled = !this.video;

@@ -1,0 +1,12 @@
+:root, :host {
+  --ink: #172b3a;
+  --muted: #596b77;
+  --paper: #f5f7f8;
+  --surface: #ffffff;
+  --line: #dce3e7;
+  --mint: #71dfb8;
+  --mint-wash: #e8f8f1;
+  --green: #17634e;
+  --focus: #218068;
+  --font: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
