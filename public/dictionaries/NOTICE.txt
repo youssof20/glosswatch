@@ -1,0 +1,19 @@
+Glosswatch dictionaries
+
+Definitions and inflections are extracted from the English Wiktionary by
+Wiktextract and distributed by Kaikki.org:
+https://kaikki.org/dictionary/
+https://github.com/tatuylonen/wiktextract
+
+Copyright: Wiktionary contributors. Licensed under Creative Commons
+Attribution-ShareAlike 4.0: https://creativecommons.org/licenses/by-sa/4.0/
+See CC-BY-SA-4.0.txt in this directory for the license text.
+
+Glosswatch's build script selects definitions, pronunciation, and inflections,
+normalizes keys, limits definitions per word, and compresses the result.
+Each dictionary records its source URL and the source stream's SHA-256 hash.
+Adapted dictionary data retains the same CC BY-SA 4.0 license. The extension's
+original code is licensed separately under MIT.
+
+Every word card links to its Wiktionary entry, whose history identifies the
+contributors. Dictionary text describes words; it is not sentence translation.

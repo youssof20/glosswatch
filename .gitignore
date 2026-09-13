@@ -15,6 +15,9 @@ stats-*.json
 # Local environment settings
 .env
 .env.*
+.cache/
+test-results/
+playwright-report/
 
 # web-ext
 web-ext.config.ts

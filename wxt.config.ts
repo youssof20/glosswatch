@@ -27,12 +27,24 @@ const chromeBinary = process.env.CHROME_PATH || findChrome();
 export default defineConfig({
   srcDir: 'src',
   modules: ['@wxt-dev/webextension-polyfill'],
+  zip: {
+    dotSources: true,
+    includeSources: [
+      'src/**', 'public/**', 'assets/**', 'scripts/**', 'tests/**',
+      '.github/workflows/**', '.gitignore', '*.md', 'LICENSE',
+      'package.json', 'package-lock.json', 'tsconfig.json', 'wxt.config.ts',
+    ],
+  },
   webExt: {
     // WXT passes binaries.chrome to web-ext as chromiumBinary.
     binaries: chromeBinary ? { chrome: chromeBinary } : {},
   },
   hooks: {
     'config:resolved'(wxt) {
+      // Keep the verification suite in the reproducible source package.
+      wxt.config.zip.excludeSources = wxt.config.zip.excludeSources.filter(
+        pattern => pattern !== '**/__tests__/**' && pattern !== '**/*.+(test|spec).?(c|m)+(j|t)s?(x)',
+      );
       if (wxt.config.command !== 'serve' || wxt.config.browser !== 'chrome') return;
 
       // Resolve after local web-ext config and .env files have been loaded.
@@ -63,7 +75,10 @@ export default defineConfig({
   manifest: ({ browser }) => ({
     name: 'Glosswatch',
     description:
-      'Local subtitle tools for language learners (early development).',
+      'Load your subtitles, look up words, and review what you learn. Works locally on web videos and your own files.',
+    permissions: ['storage', 'activeTab'],
+    action: { default_title: 'Open Glosswatch' },
+    options_ui: { page: 'about.html', open_in_tab: true },
     icons: {
       16: 'icon/16.png',
       32: 'icon/32.png',

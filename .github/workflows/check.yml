@@ -1,0 +1,35 @@
+name: Check extension
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    env:
+      PLAYWRIGHT_BROWSERS_PATH: ${{ github.workspace }}/.cache/browsers
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm test
+      - run: npm run compile
+      - run: npm run build && npm run build:firefox
+      - run: npx --no-install web-ext lint --source-dir .output/firefox-mv3
+      - run: npx playwright install --with-deps chromium firefox
+      - run: sudo apt-get update && sudo apt-get install -y ffmpeg
+      - run: npm run test:fixtures
+      - run: npm run test:browser
+      - run: npm run test:firefox
+      - run: npm run zip && npm run zip:firefox
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: extension-build-and-screenshots
+          path: |
+            .output/*.zip
+            .cache/screenshots/*.png

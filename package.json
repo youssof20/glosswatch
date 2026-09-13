@@ -1,14 +1,20 @@
 {
   "name": "glosswatch",
-  "description": "Local subtitle tools for language learners (early development).",
+  "description": "Local subtitle learning for web videos and your own files, with offline dictionaries and saved-word review.",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/youssof20/glosswatch.git"
   },
   "author": "youssof20",
-  "keywords": ["browser-extension", "subtitles", "language-learning", "chrome", "firefox"],
+  "keywords": [
+    "browser-extension",
+    "subtitles",
+    "language-learning",
+    "chrome",
+    "firefox"
+  ],
   "private": true,
-  "version": "0.0.1",
+  "version": "0.1.0",
   "type": "module",
   "license": "MIT",
   "scripts": {
@@ -19,16 +25,27 @@
     "zip": "wxt zip",
     "zip:firefox": "wxt zip -b firefox",
     "compile": "tsc --noEmit",
-    "test": "node --test scripts/*.test.mjs",
-    "smoke": "node scripts/smoke-phase0.mjs",
+    "test": "node --import tsx --test tests/*.test.ts scripts/*.test.mjs",
+    "test:browser": "node scripts/test-extension.mjs",
+    "test:fixtures": "node scripts/make-fixtures.mjs",
+    "test:browsers": "node scripts/install-browsers.mjs",
+    "test:sites": "node scripts/test-sites.mjs",
+    "licenses": "node scripts/build-notices.mjs",
+    "smoke": "node scripts/test-firefox.mjs",
+    "test:firefox": "node scripts/test-firefox.mjs",
     "postinstall": "wxt prepare"
   },
   "dependencies": {
     "@wxt-dev/webextension-polyfill": "^1.0.0",
+    "dexie": "^4.4.6",
+    "jschardet": "^3.1.4",
+    "mediabunny": "^1.56.2",
     "webextension-polyfill": "^0.12.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.58.2",
     "chrome-launcher": "^1.2.0",
+    "tsx": "^4.23.13",
     "typescript": "^5.9.3",
     "vite": "^8.1.5",
     "web-ext": "^10.6.0",
