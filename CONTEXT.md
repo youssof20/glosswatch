@@ -1,13 +1,9 @@
 # Glosswatch — Master Context
 
-> **Read this whole file before writing any code.** This is the single source of truth for
-> the project: what it is, why it's built this way, the architecture, the stack, the exact
-> user flow, the feature/polish bar, the edge cases to defend against, and the phased plan.
->
-> **Rule for Cursor:** after finishing each phase in "Build Phases" below, update the
-> **"Current Status"** section at the very bottom of this file — mark the phase done, note
-> what was actually built vs. planned, and list any deviations or new edge cases discovered.
-> Do this before starting the next phase. This file is meant to stay perpetually current.
+This document describes the architecture, intended user flows, and build plan.
+Sections 1–10 describe the target product; §11 records what is implemented and tested.
+After each phase, update §11 with the results, remaining gaps, and new edge cases
+before starting the next phase.
 
 ---
 
@@ -311,9 +307,7 @@ translation (e.g. smaller card, labeled "word meaning" not "translation").
 ## 7. Tech stack
 
 - **Language:** TypeScript throughout — extension code and the shared core engine.
-- **Extension framework:** Manifest V3, built with `CRXJS` (Vite plugin) or
-  `WXT` (either is fine — WXT has better multi-browser output out of the box, which
-  matters given the Firefox-parity goal; pick one at Phase 0 and don't revisit).
+- **Extension framework:** WXT 0.21 with Vite and Manifest V3 for Chrome and Firefox.
 - **Cross-browser compatibility:** `webextension-polyfill` from day one — do not
   write Chrome-only `chrome.*` calls and "port to Firefox later."
 - **Subtitle parsing:** hand-rolled lenient parser for `.srt`/`.vtt` (small, so worth
@@ -476,10 +470,38 @@ not just code that compiles. **Update §11 (Current Status) after each phase.**
 
 ## 11. Current Status
 
-> **Cursor: update this section after completing each phase.** State which phase is
-> done, what was actually built (vs. what was planned above, if it diverged), and any
-> new edge cases or decisions discovered along the way. Keep old entries below new
-> ones so this reads as a running log.
+Newest entries first. Record completed work, validation, and remaining gaps after
+each phase; keep older entries as a history of decisions.
+
+- **Phase 0 maintenance (2026-09-13):** Build setup is working; Phase 1 has not
+  started. Full Phase 0 browser validation remains incomplete: the earlier entry
+  records Firefox injection, but Chrome injection has not been verified.
+  - **Built:** Chrome discovery uses `chrome-launcher` as a direct dev dependency.
+    `CHROME_PATH` overrides WXT's `binaries.chrome` setting (passed to web-ext as
+    `chromiumBinary`). Missing or invalid paths disable auto-launch and print manual
+    loading instructions while the dev server keeps running. Local `web-ext.config.ts`
+    settings are respected; Firefox startup is unaffected by Chrome discovery.
+  - **Cleanup:** Shorter README, accurate package/manifest descriptions, repository,
+    author and keywords, and project icons (`assets/icon.svg`, PNG exports in
+    `public/icon/`). Local `.env` files and build directories are ignored; no build
+    output is tracked. Removed the console-only background script and inert toolbar
+    action. The content-script marker remains for injection testing; its console
+    message only appears in development builds.
+  - **Verified:** Clean dependency installation, TypeScript checking, both production
+    builds, and seven browser-startup regression scenarios. `npm run dev` builds and
+    stays running without Chrome; its Vite client endpoint returns HTTP 200. The
+    existing WXT/web-ext updates are retained. Node 22.12+ is required by Vite.
+  - **Not verified here:** Live Chrome/Firefox injection. Chrome and Firefox are not
+    installed on this machine. `npm run smoke` now exits with an actionable Firefox
+    installation message instead of an unhandled process error. The smoke test still
+    requires Firefox, network access to example.com, and a free port 28218.
+  - **Product gaps:** No video detection, toolbar panel, subtitle parser or file
+    input, overlay, dictionary, flashcards, or local player. Consequently, parse
+    failures, pages without video, and denied file-URL access have **no UI messages**
+    yet. The corresponding checks in §8 remain open; file-URL guidance is only in
+    the README. This maintenance pass does not complete the product polish phase.
+  - **History:** The three earlier commits include two terse setup messages. History
+    is preserved; subsequent commits should describe the actual changes.
 
 - **Phase 0:** Done (2026-09-08).
   - **Built:** WXT 0.21 + TypeScript + Manifest V3 scaffold; MIT license; README;

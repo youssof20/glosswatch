@@ -1,57 +1,61 @@
 # Glosswatch
 
-**Lingopie's clickable-subtitle experience, without the content library, the subscription, or the server.**
+A Chrome and Firefox extension in early development for language learners who want
+clickable subtitles on their own videos. Only the extension setup is built so far.
 
-Glosswatch is a free, open-source browser extension that turns any video — a show you're streaming, or a file on disk — into an interactive language-learning session, using subtitle files you already have.
-
-Everything runs **entirely on your machine**. No backend, no accounts, no tracking, no ads.
-
-> This is early development (Phase 0). Subtitle overlay, dictionary, and flashcards are not built yet. The design doc is [CONTEXT.md](./CONTEXT.md).
-
-## What this is / isn't
-
-| This is | This is not |
-|---|---|
-| A display/interaction layer for **your** video and **your** subtitle files | A content library, streaming service, or subtitle host |
-| Client-side only — MIT licensed, inspectable | A SaaS product with a server bill |
-| Chrome + Firefox from one codebase (Manifest V3) | Chrome-only with a "Firefox later" promise |
-| Minimal permissions, no telemetry | A free trial with a paywall |
-
-We do not host, store, or distribute copyrighted video or subtitles. You supply the file (or you're already logged into the streaming site). We overlay and make the text clickable.
+No content library, accounts, tracking, or server. You supply the video and subtitle
+files; subtitle playback and learning tools are still planned.
 
 ## Develop
 
-Requires [Node.js](https://nodejs.org/) 22+.
+Requires Node.js 22.12+ and npm. From the repo root:
 
-```bash
-npm install
-npm run dev          # Chrome, unpacked + live reload
-npm run dev:firefox  # Firefox, temporary add-on + live reload
+```sh
+npm ci
+npm run dev            # Chrome; loads manually if no browser is found
+npm run dev:firefox    # requires Firefox
 ```
 
-Or build once and load manually:
+To build for manual installation:
 
-```bash
-npm run build          # → .output/chrome-mv3
-npm run build:firefox  # → .output/firefox-mv3
-```
-
-- **Chrome:** `chrome://extensions` → Developer mode → Load unpacked → select `.output/chrome-mv3`
-- **Firefox:** `about:debugging#/runtime/this-firefox` → Load Temporary Add-on → select `.output/firefox-mv3/manifest.json`
-
-Phase 0 smoke test: open any page, open DevTools → Console, and look for `[Glosswatch] content script loaded`. In the inspector, `<html>` should have `data-glosswatch="loaded"`. Automated check (Firefox, requires a local Firefox install):
-
-```bash
+```sh
+npm run build
 npm run build:firefox
-npm run smoke
+npm run compile
 ```
 
-Local `file://` videos need an extra one-time toggle (Chrome: extension details → "Allow access to file URLs"). We'll prompt for this later, only when needed.
+- Chrome: open `chrome://extensions`, enable Developer mode, then load unpacked
+  from `.output/chrome-mv3` (or `.output/chrome-mv3-dev` while dev is running).
+- Firefox: open `about:debugging#/runtime/this-firefox` and load a temporary add-on
+  using `.output/firefox-mv3/manifest.json`.
+
+### Troubleshooting
+
+Set `CHROME_PATH` to your Chrome/Chromium executable if detection misses it.
+To save a manual `chromiumBinary` setting, WXT calls it `binaries.chrome`:
+create the ignored `web-ext.config.ts` below. `CHROME_PATH` takes precedence.
+If your browser opens without the extension, use the manual-load steps above.
+
+```ts
+import { defineWebExtConfig } from 'wxt';
+
+export default defineWebExtConfig({
+  binaries: { chrome: 'C:/path/to/chrome.exe' },
+});
+```
+
+## Current state
+
+Manifest V3 builds and a content-script injection check are implemented. On a normal
+web page, the check sets `<html data-glosswatch="loaded">`. `npm run smoke` checks
+injection in headless Firefox after `npm run build:firefox`; set `FIREFOX_PATH` if
+Firefox is outside its default Windows location.
+
+No toolbar panel, video detection, subtitle parser, overlay, dictionary, or flashcards
+yet. Parse errors, missing videos, and denied file-URL access therefore have no UI
+messages yet. Chrome's “Allow access to file URLs” toggle is currently a manual step.
+See [CONTEXT.md](./CONTEXT.md) for the build plan and validation gaps.
 
 ## License
 
 [MIT](./LICENSE)
-
-## Contributing
-
-Read [CONTEXT.md](./CONTEXT.md) first. It is the source of truth for architecture, UX rules, edge cases, and the phased build plan.

@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+  <title>Glosswatch</title>
+  <rect width="128" height="128" rx="24" fill="#172b3a"/>
+  <path d="M52 26 80 42 52 58Z" fill="#71dfb8"/>
+  <rect x="24" y="74" width="48" height="10" rx="3" fill="#f2f6f8"/>
+  <rect x="78" y="74" width="26" height="10" rx="3" fill="#71dfb8"/>
+  <rect x="36" y="94" width="56" height="10" rx="3" fill="#f2f6f8"/>
+</svg>

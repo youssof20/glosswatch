@@ -2,15 +2,11 @@ export default defineContentScript({
   matches: ['<all_urls>'],
   runAt: 'document_idle',
   main() {
-    const manifest = browser.runtime.getManifest();
-    console.log('[Glosswatch] content script loaded', {
-      href: location.href,
-      name: manifest.name,
-      version: manifest.version,
-      browser: import.meta.env.BROWSER,
-    });
+    if (import.meta.env.DEV) {
+      console.debug('[Glosswatch] content script loaded');
+    }
 
-    // Inspector smoke-test: document.documentElement.dataset.glosswatch === 'loaded'
+    // Used by scripts/smoke-phase0.mjs until the overlay provides a visible check.
     document.documentElement.dataset.glosswatch = 'loaded';
   },
 });

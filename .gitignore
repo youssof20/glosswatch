@@ -6,11 +6,15 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 
-node_modules
-.output
+node_modules/
+.output/
 stats.html
 stats-*.json
-.wxt
+.wxt/
+
+# Local environment settings
+.env
+.env.*
 
 # web-ext
 web-ext.config.ts

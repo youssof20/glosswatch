@@ -1,17 +1,74 @@
 import { defineConfig } from 'wxt';
+import { Launcher } from 'chrome-launcher';
+import { accessSync, constants, statSync } from 'node:fs';
+import { relative } from 'node:path';
+
+function findChrome(): string | undefined {
+  try {
+    return Launcher.getInstallations()[0];
+  } catch {
+    // Discovery can throw on machines without a supported Chrome installation.
+    return undefined;
+  }
+}
+
+function isExecutable(binary: string | undefined): boolean {
+  if (!binary) return false;
+  try {
+    accessSync(binary, constants.X_OK);
+    return statSync(binary).isFile();
+  } catch {
+    return false;
+  }
+}
+
+const chromeBinary = process.env.CHROME_PATH || findChrome();
 
 export default defineConfig({
   srcDir: 'src',
   modules: ['@wxt-dev/webextension-polyfill'],
-  // CONTEXT.md: Manifest V3 for Chrome and Firefox from day one.
+  webExt: {
+    // WXT passes binaries.chrome to web-ext as chromiumBinary.
+    binaries: chromeBinary ? { chrome: chromeBinary } : {},
+  },
+  hooks: {
+    'config:resolved'(wxt) {
+      if (wxt.config.command !== 'serve' || wxt.config.browser !== 'chrome') return;
+
+      // Resolve after local web-ext config and .env files have been loaded.
+      const webExt = wxt.config.webExt.config;
+      if (webExt.disabled) return;
+      const binary = process.env.CHROME_PATH || webExt.binaries?.chrome;
+      if (isExecutable(binary)) {
+        webExt.binaries = { ...webExt.binaries, chrome: binary! };
+        return;
+      }
+
+      webExt.disabled = true;
+      // WXT selects its runner before this hook, so replace it as well.
+      wxt.config.runner = {
+        async openBrowser() {
+          wxt.logger.info(
+            'No usable Chrome binary found; browser auto-launch is disabled. ' +
+              'Set CHROME_PATH to a Chrome/Chromium executable to enable it.',
+          );
+          wxt.logger.info(
+            `Load "${relative(wxt.config.root, wxt.config.outDir)}" as an unpacked extension manually`,
+          );
+        },
+      };
+    },
+  },
   manifestVersion: 3,
   manifest: ({ browser }) => ({
     name: 'Glosswatch',
     description:
-      'Clickable subtitles for any video. Local, free, no account, no tracking.',
-    // No popup in v1 — the toolbar icon will open an in-page panel later.
-    action: {
-      default_title: 'Glosswatch',
+      'Local subtitle tools for language learners (early development).',
+    icons: {
+      16: 'icon/16.png',
+      32: 'icon/32.png',
+      48: 'icon/48.png',
+      128: 'icon/128.png',
     },
     ...(browser === 'firefox' && {
       browser_specific_settings: {
